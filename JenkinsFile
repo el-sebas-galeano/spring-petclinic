@@ -4,7 +4,8 @@ pipeline {
     tools {
         maven 'Maven 3.8.7'
         jdk 'Java 17'
-    }    
+    }
+    
     stages {
         stage('Checkout Code') {
             steps {
@@ -12,9 +13,17 @@ pipeline {
             }
         }
         
+        stage('Checkstyle') {
+            steps {
+                sh 'mvn checkstyle:checkstyle'
+                archiveArtifacts artifacts: 'target/checkstyle-report.xml', allowEmptyArchive: true
+            }
+        }
+
         stage('Build') {
             steps {
                 sh 'mvn clean package -DskipTests'
+                archiveArtifacts artifacts: 'target/*.war', allowEmptyArchive: true
             }
         }
         
@@ -24,9 +33,9 @@ pipeline {
             }
         }
         
-        stage('Run Spring Boot') {
+        stage('Deploy to Tomcat') {
             steps {
-                sh 'java -jar target/nombre-del-jar-spring-boot.jar'
+                sh 'cp target/*.war /deploy'
             }
         }
     }
